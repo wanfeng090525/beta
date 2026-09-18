@@ -617,17 +617,26 @@ fun Modifier.pressRipple(
                 val t = (age.toFloat() / RIPPLE_LIFETIME).coerceIn(0f, 1f)
                 val cx = ripple.x
                 val cy = ripple.y
+                // 边界感知：以「触点到组件边界最近距离」收敛所有光斑/光环半径，
+                // 让光效在抵达边缘前衰减归零——避免被组件矩形边界硬裁出
+                // 带直边的亮斑（视觉上「突出一块方形/长方形」的异常感）
+                val edgeDist = minOf(cx, cy, size.width - cx, size.height - cy).coerceAtLeast(1f)
+                // 描边光环半径上限：完全落在边界内，保持正圆不截断
+                val ringCap = edgeDist * 0.96f
+                // 填充光斑半径上限：略越过边界，让渐变透明尾段覆盖边界处
+                // （边界位于渐变最外圈，亮度趋近 0，看不到直边）
+                val fillCap = edgeDist * 1.12f
                 val reach = max(size.width, size.height) * 1.05f
 
                 // ── 1. 能量核心：快速膨胀 + 衰减（前 33% 生命周期） ──
                 val coreT = (t / 0.33f).coerceIn(0f, 1f)
-                val coreR = reach * 0.30f * easeOutCubic(coreT)
-                val coreA = (1f - coreT).pow(1.6f) * 0.42f * intensity
+                val coreR = (reach * 0.24f * easeOutCubic(coreT)).coerceAtMost(fillCap)
+                val coreA = (1f - coreT).pow(1.6f) * 0.34f * intensity
                 if (coreA > 0.003f) {
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                Color.White.copy(alpha = coreA * 1.5f),
+                                Color.White.copy(alpha = coreA * 1.4f),
                                 color.copy(alpha = coreA),
                                 Color.Transparent
                             ),
@@ -639,24 +648,24 @@ fun Modifier.pressRipple(
                     )
                 }
 
-                // ── 2. 主冲击波（延迟 20ms 启动） ──
+                // ── 2. 主冲击波（延迟 20ms 启动，扩散至边缘即收敛） ──
                 val waveT = ((t - 0.02f) / 0.80f).coerceIn(0f, 1f)
                 if (waveT > 0f && waveT < 1f) {
-                    val wR = reach * easeOutQuart(waveT)
-                    val wA = (1f - waveT).pow(1.3f) * 0.55f * intensity
+                    val wR = (reach * easeOutQuart(waveT)).coerceAtMost(ringCap)
+                    val wA = (1f - waveT).pow(1.3f) * 0.48f * intensity
                     drawCircle(
                         color = Color.White.copy(alpha = wA),
                         radius = wR.coerceAtLeast(1f),
                         center = Offset(cx, cy),
                         style = Stroke(width = (2.2.dp.toPx() * (1f - waveT * 0.55f)).coerceAtLeast(0.6f))
                     )
-                    // 冲击波内侧微弱辉光填充
+                    // 冲击波内侧微弱辉光填充（收紧半径 + 降低亮度）
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                color.copy(alpha = wA * 0.35f),
-                                Color.White.copy(alpha = wA * 0.80f),
+                                color.copy(alpha = wA * 0.28f),
+                                Color.White.copy(alpha = wA * 0.55f),
                                 Color.Transparent
                             ),
                             center = Offset(cx, cy),
@@ -667,10 +676,10 @@ fun Modifier.pressRipple(
                     )
                 }
 
-                // ── 3. 次级回响（延迟 120ms，更宽更淡） ──
+                // ── 3. 次级回响（延迟 120ms，更宽更淡，同样收敛在边界内） ──
                 val echoT = ((t - 0.15f) / 0.85f).coerceIn(0f, 1f)
                 if (echoT > 0f && echoT < 1f) {
-                    val eR = reach * easeOutQuart(echoT) * 1.10f
+                    val eR = (reach * easeOutQuart(echoT)).coerceAtMost(ringCap)
                     val eA = (1f - echoT).pow(2f) * 0.26f * intensity
                     drawCircle(
                         color = color.copy(alpha = eA),
@@ -1366,7 +1375,7 @@ fun GlobalRippleOverlay(modifier: Modifier = Modifier) {
                     // 1. 能量核心
                     val coreT = (tR / 0.33f).coerceIn(0f, 1f)
                     val coreR = reach * 0.34f * easeOutCubic(coreT)
-                    val coreA = (1f - coreT).pow(1.6f) * 0.50f
+                    val coreA = (1f - coreT).pow(1.6f) * 0.40f
                     if (coreA > 0.003f) {
                         drawCircle(
                             brush = Brush.radialGradient(
@@ -1387,7 +1396,7 @@ fun GlobalRippleOverlay(modifier: Modifier = Modifier) {
                     val waveT = ((tR - 0.02f) / 0.80f).coerceIn(0f, 1f)
                     if (waveT > 0f && waveT < 1f) {
                         val wR = reach * easeOutQuart(waveT)
-                        val wA = (1f - waveT).pow(1.3f) * 0.60f
+                        val wA = (1f - waveT).pow(1.3f) * 0.48f
                         drawCircle(
                             color = Color.White.copy(alpha = wA),
                             radius = wR.coerceAtLeast(1f),

@@ -507,7 +507,7 @@ private fun QuickTile(
             .glassShadow(8.dp, RoundedCornerShape(22.dp))
             .pressScale(interaction, pressedScale = 0.94f)
             .glass(RoundedCornerShape(22.dp), rememberGlassColors())
-            .pressRipple(interaction, clipShape = RoundedCornerShape(22.dp), color = tint, intensity = 1.2f)
+            .pressRipple(interaction, clipShape = RoundedCornerShape(22.dp), color = tint, intensity = 0.9f)
             .clickable(
                 interactionSource = interaction,
                 indication = null
@@ -530,7 +530,9 @@ private fun QuickTile(
                 modifier = Modifier
                     .size(34.dp)
                     .glass(
-                        RoundedCornerShape(12.dp),
+                        // 圆形图标底：与全局圆形图标语言统一，
+                        // 避免按压提亮时卡片内显出「方形底」突兀感
+                        CircleShape,
                         rememberGlassColors()
                     ),
                 contentAlignment = Alignment.Center
@@ -1526,7 +1528,8 @@ private fun KeyExtractionTile(
                 modifier = Modifier
                     .size(38.dp)
                     .glass(
-                        RoundedCornerShape(13.dp),
+                        // 圆形图标底：统一图标语言，消除按压时的「方形底」观感
+                        CircleShape,
                         rememberGlassColors()
                     ),
                 contentAlignment = Alignment.Center
