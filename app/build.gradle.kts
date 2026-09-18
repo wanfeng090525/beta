@@ -9,8 +9,7 @@ plugins {
 
 android {
     namespace = "com.watchface.idtool"
-    // haze 2.0.0-rc01 及其传递的新版 Compose/core 依赖要求 compileSdk >= 37
-    compileSdk = 37
+    compileSdk = 36
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
@@ -93,12 +92,10 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
-    // 液态玻璃真实背景模糊：Haze 库当前最新已发布版本是 2.0.0-rc01（Maven Central
-    // 上能查到的最新非 SNAPSHOT 版本；2.0 线仍是 rc 阶段，API 相对 1.x 有破坏性重构，
-    // 具体见下方 Components.kt 里的 hazeEffect/blurEffect 用法）。
-    // Blur 效果在 2.0 起拆成独立的 haze-blur 模块，必须一起引入。
-    implementation("dev.chrisbanes.haze:haze:2.0.0-rc01")
-    implementation("dev.chrisbanes.haze:haze-blur:2.0.0-rc01")
+    // 液态玻璃真实背景模糊：Haze 1.6.10 是与 AGP 8.13 / compileSdk 36 工具链
+    // 兼容的最新稳定版（1.7+ 和 2.0 线均强制要求 Compose 1.12 + AGP 9.1+）。
+    // 具体见 Components.kt 里的 hazeEffect 用法。
+    implementation("dev.chrisbanes.haze:haze:1.6.10")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

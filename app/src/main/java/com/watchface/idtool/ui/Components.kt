@@ -39,9 +39,8 @@ import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.blur.HazeColorEffect
-import dev.chrisbanes.haze.blur.blurEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -1812,18 +1811,13 @@ fun GlassNavBar(
         modifier = modifier
             .then(
                 if (hazeState != null) {
-                    // 真实背光模糊（Haze 2.0 rc 契约）：先硬裁到胶囊形状，
-                    // 再用 hazeEffect + blurEffect{} 磨砂——2.0 起所有模糊相关
-                    // 属性（blurRadius/colorEffects/noiseFactor）必须包在
-                    // blurEffect{} 内，不能再像 1.x 那样直接摆在外层 lambda。
+                    // 真实背光模糊：先硬裁到胶囊形状，再用 hazeEffect 磨砂
                     Modifier
                         .clip(navShape)
                         .hazeEffect(state = hazeState) {
-                            blurEffect {
-                                blurRadius = 22.dp
-                                colorEffects = listOf(HazeColorEffect.tint(Color.Black.copy(alpha = 0.30f)))
-                                noiseFactor = 0.06f
-                            }
+                            blurRadius = 22.dp
+                            tints = listOf(HazeTint(Color.Black.copy(alpha = 0.30f)))
+                            noiseFactor = 0.06f
                         }
                 } else Modifier
             )
@@ -1991,11 +1985,9 @@ fun GlassFabButton(
                     Modifier
                         .clip(CircleShape)
                         .hazeEffect(state = hazeState) {
-                            blurEffect {
-                                blurRadius = 22.dp
-                                colorEffects = listOf(HazeColorEffect.tint(Color.Black.copy(alpha = 0.30f)))
-                                noiseFactor = 0.06f
-                            }
+                            blurRadius = 22.dp
+                            tints = listOf(HazeTint(Color.Black.copy(alpha = 0.30f)))
+                            noiseFactor = 0.06f
                         }
                 } else Modifier
             )
