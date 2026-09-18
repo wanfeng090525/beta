@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -56,6 +57,7 @@ import com.watchface.idtool.ui.GlassNavTab
 import com.watchface.idtool.ui.GlassNavBar
 import com.watchface.idtool.ui.GlobalRippleOverlay
 import com.watchface.idtool.ui.HistoryScreen
+import com.watchface.idtool.ui.LocalHazeState
 import com.watchface.idtool.ui.LoadingOverlay
 import com.watchface.idtool.ui.ModifyScreen
 import com.watchface.idtool.ui.ResultDialog
@@ -204,12 +206,21 @@ private fun AppContent() {
     // 内容产生磨砂虚化，而不再是纯靠渐变模拟的假玻璃。
     val hazeState = rememberHazeState()
 
+    CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         // L0 背景：自定义壁纸 / 纯色 / 液态动态（全屏铺满，含系统栏区域；
         //          图片 ContentScale.Crop 保持原比例居中裁剪，任意屏幕比例不变形）
-        AppBackground()
+        // 以 zIndex = -1 注册为模糊源：内容卡片（frostBehind）只会磨砂壁纸层，
+        // 不会把页面内容自己也模糊进去。
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState, zIndex = -1f)
+        ) {
+            AppBackground()
+        }
 
         // L1 内容区：避开系统栏与输入法
         Box(
@@ -225,7 +236,7 @@ private fun AppContent() {
             AnimatedContent(
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(hazeState),
+                    .hazeSource(hazeState, zIndex = 0f),
                 targetState = currentPage,
                 transitionSpec = {
                     val from = PAGES.indexOf(initialState).coerceAtLeast(0)
@@ -320,4 +331,5 @@ private fun AppContent() {
         // L4 全局点击光效：View 层监听 · 零拦截 · 最顶层绘制
         GlobalRippleOverlay()
     }
+    } // CompositionLocalProvider(LocalHazeState)
 }

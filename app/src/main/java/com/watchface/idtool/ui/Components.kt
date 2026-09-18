@@ -41,6 +41,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -189,6 +190,33 @@ fun rememberGlassColors(
     rimBright = GlassPalette.rimBright,
     rimDim = GlassPalette.rimDim
 )
+
+/** 全局 Haze 模糊源状态：由 MainActivity 提供，卡片玻璃消费（真实磨砂背光） */
+val LocalHazeState = staticCompositionLocalOf<HazeState?> { null }
+
+/**
+ * 真实磨砂背光：把卡片后面（壁纸/动态背景）的内容以 RenderEffect 模糊后
+ * 垫在玻璃底色之下——雪花、光斑透过卡片呈现虚化光晕，呈现真正的
+ * 「液态玻璃厚度感」，而不是纯渐变模拟的塑料贴膜感。
+ *
+ * 实现说明：
+ *  - Haze 1.6 官方支持 hazeEffect 位于 hazeSource 层级内部（按 zIndex 过滤源）；
+ *    壁纸层以 zIndex = -1 注册，页面内容层为 0，因此卡片只会磨砂壁纸层；
+ *  - 噪点 noiseFactor 同时兼作渐变抖动（dither），消除低透明度渐变
+ *    在深色壁纸上产生的「条带/方形色块」错觉；
+ *  - state 为空（尚未提供）时本修饰符为 no-op，安全降级为旧渐变玻璃。
+ */
+@Composable
+fun Modifier.frostBehind(shape: Shape, frostRadius: Dp = 18.dp): Modifier {
+    val state = LocalHazeState.current ?: return this
+    return this
+        .clip(shape)
+        .hazeEffect(state) {
+            this.blurRadius = frostRadius
+            this.noiseFactor = 0.05f
+            tints = listOf(HazeTint(Color(0xFF10142A).copy(alpha = 0.16f)))
+        }
+}
 
 /**
  * 液态玻璃材质绘制（v3 —— iOS Liquid Glass 折射规格）：
@@ -1454,6 +1482,7 @@ fun GlassCard(
     contentPadding: Dp = 16.dp,
     haptic: Boolean = true,
     shadowElevation: Dp = 7.dp,
+    frosted: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = rememberGlassColors(tintTop, tintBottom)
@@ -1476,6 +1505,7 @@ fun GlassCard(
         modifier = modifier
             .glassShadow(shadowElevation, shape)
             .then(base)
+            .then(if (frosted) Modifier.frostBehind(shape) else Modifier)
             .glass(shape, colors)
             .padding(contentPadding),
         content = content

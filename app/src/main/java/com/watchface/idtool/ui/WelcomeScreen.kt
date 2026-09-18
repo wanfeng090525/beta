@@ -506,6 +506,7 @@ private fun QuickTile(
             .aspectRatio(1.55f)
             .glassShadow(8.dp, RoundedCornerShape(22.dp))
             .pressScale(interaction, pressedScale = 0.94f)
+            .frostBehind(RoundedCornerShape(22.dp))
             .glass(RoundedCornerShape(22.dp), rememberGlassColors())
             .pressRipple(interaction, clipShape = RoundedCornerShape(22.dp), color = tint, intensity = 0.9f)
             .clickable(
@@ -658,6 +659,7 @@ private fun HitokotoBar() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .frostBehind(RoundedCornerShape(20.dp))
             .glass(
                 RoundedCornerShape(20.dp),
                 rememberGlassColors(
@@ -920,7 +922,8 @@ private fun PermissionStatusCard(
         shape = RoundedCornerShape(24.dp),
         tintTop = tintTop,
         tintBottom = tintBottom,
-        contentPadding = 14.dp
+        contentPadding = 14.dp,
+        frosted = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -996,7 +999,8 @@ private fun ImportedFileCard(
     GlassCard(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        contentPadding = 12.dp
+        contentPadding = 12.dp,
+        frosted = true
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1498,6 +1502,7 @@ private fun KeyExtractionTile(
             .fillMaxWidth()
             .glassShadow(8.dp, RoundedCornerShape(22.dp))
             .pressScale(interaction, pressedScale = 0.96f)
+            .frostBehind(RoundedCornerShape(22.dp))
             .glass(RoundedCornerShape(22.dp), rememberGlassColors())
             .pressRipple(interaction, clipShape = RoundedCornerShape(22.dp), color = Color.White, intensity = 1f)
             .clickable(
