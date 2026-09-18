@@ -9,7 +9,8 @@ plugins {
 
 android {
     namespace = "com.watchface.idtool"
-    compileSdk = 36
+    // haze 2.0.0-rc01 及其传递的新版 Compose/core 依赖要求 compileSdk >= 37
+    compileSdk = 37
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
